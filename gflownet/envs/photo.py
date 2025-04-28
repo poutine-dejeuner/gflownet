@@ -34,7 +34,7 @@ class Photo(GFlowNetEnv):
     def __init__(
         self,
         max_length: int = 50,
-        n_dim: int = 4,
+        n_dim: int = 6,
         **kwargs,
     ):
         # Main attributes
@@ -95,7 +95,8 @@ class Photo(GFlowNetEnv):
         -------
         A list of boolean values.
         """
-        pass
+        return [True]*len(state)
+        
 
     def get_parents(
         self,
@@ -200,10 +201,11 @@ class Photo(GFlowNetEnv):
         self, states: Union[List[List[int]], List[TensorType["max_length"]]]
     ) -> TensorType["batch", "state_dim"]:
         states = list(states)
+        ic(len(states), states[0].shape)
         if len(states) == 1:
             return states[0]
         else:
-            states = torch.concatenate(states, dim=1)
+            states = torch.concatenate(states, dim=0)
             return states
 
     def states2proxy(

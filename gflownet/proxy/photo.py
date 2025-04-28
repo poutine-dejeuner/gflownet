@@ -6,7 +6,7 @@ import torch.nn as nn
 from tqdm import tqdm
 
 from gflownet.proxy.base import Proxy
-from nanophoto.unet_fompred import get_unet_fompred
+from nanophoto.get_trained_models import get_cpx_fields_unet_cnn_fompred
 from gflownet.utils.photo.utils import RBF, rbf_parameters_to_designs
 
 
@@ -15,7 +15,7 @@ class PhotoUnetProxy(Proxy):
         super().__init__(**kwargs)
 
     def setup(self, env=None):
-        self.model = get_unet_fompred()
+        self.model = get_cpx_fields_unet_cnn_fompred()
         # if env:
         #     self.height = env.height
         #     self.width = env.width
@@ -28,4 +28,6 @@ class PhotoUnetProxy(Proxy):
 
 
 if __name__ == "__main__":
-    PhotoUnetProxy(device=torch.device("cuda"), float_precision=16)
+    m = PhotoUnetProxy(device=torch.device("cuda"), float_precision=16)
+    print(m)
+    

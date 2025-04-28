@@ -1,3 +1,4 @@
+*.out
 None/
 __pycache__/
 .idea/
