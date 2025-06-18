@@ -12,7 +12,6 @@ from hydra import compose, initialize_config_dir
 from hydra.utils import get_original_cwd, instantiate
 from omegaconf import DictConfig, OmegaConf
 from torchtyping import TensorType
-from icecream import ic
 
 from gflownet.utils.policy import parse_policy_config
 

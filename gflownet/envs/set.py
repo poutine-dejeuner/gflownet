@@ -1644,11 +1644,12 @@ class SetFix(BaseSet):
             if active_subenv != -1:
                 active_subenvs[idx, active_subenv] = 1.0
             dones.append(self._get_dones(state))
-        dones = torch.tensor(dones, dtype=self.float)
+        dones = torch.tensor(dones, dtype=self.float, device=self.device)
 
         # Obtain the torch tensor containing the toggle flags
         toggle_flags = torch.tensor(
-            [self._get_toggle_flag(s) for s in states], dtype=self.float
+            [self._get_toggle_flag(s) for s in states], dtype=self.float,
+            device=self.device
         ).reshape(
             (-1, 1)
         )  # reshape to (n_states, 1)
@@ -2152,7 +2153,8 @@ class SetFlex(BaseSet):
 
         # Obtain torch tensors for the active sub-environments, the toggle flags,
         # the done indicators and the number of subenvs per unique environment
-        active_subenvs = torch.zeros((n_states, self.max_elements), dtype=self.float)
+        active_subenvs = torch.zeros((n_states, self.max_elements), dtype=self.float,
+                device=self.device)
         dones = []
         n_subenvs_per_unique_env = []
         for idx_state, state in enumerate(states):
@@ -2167,17 +2169,16 @@ class SetFlex(BaseSet):
             if len(indices) != 0:
                 n_subenvs[indices] = counts
             n_subenvs_per_unique_env.append(n_subenvs.tolist())
-        dones = torch.tensor(dones, dtype=self.float)
+        dones = torch.tensor(dones, dtype=self.float, device=self.device)
         n_subenvs_per_unique_env = torch.tensor(
-            n_subenvs_per_unique_env, dtype=self.float
+            n_subenvs_per_unique_env, dtype=self.float, device=self.device
         )
 
         # Obtain the torch tensor containing the toggle flags
         toggle_flags = torch.tensor(
-            [self._get_toggle_flag(s) for s in states], dtype=self.float
-        ).reshape(
-            (-1, 1)
-        )  # reshape to (n_states, 1)
+                [self._get_toggle_flag(s) for s in states],
+               dtype=self.float, device=self.device
+               ).reshape( (-1, 1))  # reshape to (n_states, 1)
 
         # Initialize the policy representation of the states with self.max_elements
         # source states in their policy representation per unique environment.
