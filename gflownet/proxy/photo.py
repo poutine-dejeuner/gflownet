@@ -32,19 +32,61 @@ class PhotoUnetProxy(Proxy):
         return fompred
 
 
-def list_to_tensor(state):
-    centers = []
-    weights = []
-    widths = []
-
-    for x in state:
-        centers.append(x[0])
-        weights.append(x[1])
-        widths.append(x[2])
-    centers = torch.stack(centers, dim=0)
-    weights = torch.stack(weights, dim=0)
-    widths = torch.stack(widths, dim=0)
-    return weights, centers, widths
+def list_to_tensor(states):
+    """Convert SetFlex states to tensors for the proxy.
+    
+    Each state is a list of [setflex_state, cubestack_dict] where:
+    - setflex_state: [-1, 0, [stack1_data], [stack2_data]]
+    - cubestack_dict: {idx: [tensor(...), tensor(...), tensor(...)], ...}
+    
+    The output should be shaped as (batch_size, n_functions, 4) for RBF parameters.
+    """
+    batch_tensors = []
+    
+    for state in states:
+        # Extract the CubeStack dictionary (second element)
+        cubestack_dict = state[1]
+        
+        # Convert CubeStack dictionary to flat features
+        cube_features = []
+        for idx in sorted(cubestack_dict.keys()):
+            cube_tensors = cubestack_dict[idx]
+            # Flatten all tensors for this cube
+            for tensor in cube_tensors:
+                cube_features.extend(tensor.cpu().numpy().flatten())
+        
+        # Convert to tensor
+        feature_tensor = torch.tensor(cube_features, dtype=torch.float32)
+        
+        # Reshape to RBF parameters: (n_functions, 4) where 4 = [weight, center_x, center_y, width]
+        # We'll group features into sets of 4
+        n_features = len(feature_tensor)
+        n_functions = max(1, n_features // 4)  # At least 1 function
+        
+        # Pad or truncate to get exactly n_functions * 4 features
+        target_size = n_functions * 4
+        if n_features < target_size:
+            feature_tensor = torch.cat([
+                feature_tensor, 
+                torch.zeros(target_size - n_features)
+            ])
+        else:
+            feature_tensor = feature_tensor[:target_size]
+        
+        # Reshape to (n_functions, 4)
+        rbf_params = feature_tensor.view(n_functions, 4)
+        batch_tensors.append(rbf_params)
+    
+    # Pad all to same number of functions for consistent batch shape
+    max_functions = max(t.shape[0] for t in batch_tensors)
+    padded_tensors = []
+    for tensor in batch_tensors:
+        if tensor.shape[0] < max_functions:
+            padding = torch.zeros(max_functions - tensor.shape[0], 4)
+            tensor = torch.cat([tensor, padding], dim=0)
+        padded_tensors.append(tensor)
+    
+    return torch.stack(padded_tensors)
 
 
 def rbf_function(params: torch.Tensor | tuple, coords):
@@ -57,12 +99,16 @@ def rbf_function(params: torch.Tensor | tuple, coords):
         coords: torch.Tensor (n_cols, n_rows)
     output: torch.Tensor (batch_size, n_cols, n_rows)
     """
-
     weights, centers, widths = params_split(params)
-    if weights.ndim == 2:
-        # weights = weights.unsqueeze(1)
+    
+    # For 3D input (batch_size, n_functions, 4), we don't need to unsqueeze
+    if weights.ndim == 2:  # This means we already have (batch_size, n_functions)
+        # centers should be (batch_size, n_functions, 2)
+        # We don't need to unsqueeze centers for this case
+        pass
+    else:
+        # For other cases, might need different handling
         centers = centers.unsqueeze(1)
-        # widths = widths.unsqueeze(1)
 
     device = weights.device
     x, y = coords
@@ -72,8 +118,11 @@ def rbf_function(params: torch.Tensor | tuple, coords):
     sigma = torch.exp(widths)
     z = torch.exp(-(z[..., 0]**2 + z[..., 1]**2) / (2 * sigma**2))
 
-    z = weights * z
-    z = z.sum(-1)
+    # Add dimensions for proper broadcasting
+    weights_expanded = weights.unsqueeze(0).unsqueeze(0)  # (1, 1, batch_size, n_functions)
+    
+    z = weights_expanded * z
+    z = z.sum(-1)  # Sum over n_functions
     z = z.permute(2, 0, 1)
     return z
 
