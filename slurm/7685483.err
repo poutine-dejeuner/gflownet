@@ -1,0 +1,43 @@
+/home/mila/l/letournv/miniconda3/envs/cphoto/lib/python3.11/site-packages/torch/_compile.py:32: UserWarning: optimizer contains a parameter group with duplicate parameters; in future, this will cause an error; see github.com/pytorch/pytorch/issues/40967 for more information
+  return disable_fn(*args, **kwargs)
+  0%|          | 0/3 [00:00<?, ?it/s]Error executing job with overrides: ['gflownet.optimizer.n_train_steps=3', 'env=photo', 'proxy=photo']
+Traceback (most recent call last):
+  File "/home/mila/l/letournv/repos/gflownet/train.py", line 81, in <module>
+    main()
+  File "/home/mila/l/letournv/miniconda3/envs/cphoto/lib/python3.11/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/home/mila/l/letournv/miniconda3/envs/cphoto/lib/python3.11/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/home/mila/l/letournv/miniconda3/envs/cphoto/lib/python3.11/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/home/mila/l/letournv/miniconda3/envs/cphoto/lib/python3.11/site-packages/hydra/_internal/utils.py", line 223, in run_and_report
+    raise ex
+  File "/home/mila/l/letournv/miniconda3/envs/cphoto/lib/python3.11/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+           ^^^^^^
+  File "/home/mila/l/letournv/miniconda3/envs/cphoto/lib/python3.11/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+            ^^^^^^^^^^
+  File "/home/mila/l/letournv/miniconda3/envs/cphoto/lib/python3.11/site-packages/hydra/_internal/hydra.py", line 132, in run
+    _ = ret.return_value
+        ^^^^^^^^^^^^^^^^
+  File "/home/mila/l/letournv/miniconda3/envs/cphoto/lib/python3.11/site-packages/hydra/core/utils.py", line 260, in return_value
+    raise self._return_value
+  File "/home/mila/l/letournv/miniconda3/envs/cphoto/lib/python3.11/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mila/l/letournv/repos/gflownet/train.py", line 38, in main
+    gflownet.train()
+  File "/home/mila/l/letournv/repos/gflownet/gflownet/gflownet.py", line 1171, in train
+    losses = self.trajectorybalance_loss(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mila/l/letournv/repos/gflownet/gflownet/gflownet.py", line 809, in trajectorybalance_loss
+    logrewards = batch.get_terminating_rewards(log=True, sort_by="trajectory")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mila/l/letournv/repos/gflownet/gflownet/utils/batch.py", line 1233, in get_terminating_rewards
+    self._compute_rewards(log, do_non_terminating=False)
+  File "/home/mila/l/letournv/repos/gflownet/gflownet/utils/batch.py", line 1026, in _compute_rewards
+    rewards[done], proxy_values[done] = self.proxy.rewards(
+    ~~~~~~~^^^^^^
+RuntimeError: Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu!
+  0%|          | 0/3 [00:02<?, ?it/s]
