@@ -1,0 +1,32 @@
+# Example config for using pre-generated Photo sequences
+
+defaults:
+  - override /env: photo
+  - override /gflownet: trajectorybalance
+  - override /proxy: photo
+  - override /logger: wandb
+
+# Buffer with replay buffer enabled
+buffer:
+  replay_capacity: 1000  # Enable replay buffer
+  train:
+    type: null  # No predefined training data
+  test:
+    type: random
+    n: 100
+
+# GFlowNet with replay sampling
+gflownet:
+  replay_sampling: weighted  # Use weighted sampling for better performance
+  train_sampling: permutation
+  optimizer:
+    batch_size:
+      forward: 32
+      backward_replay: 16  # Use replay buffer samples
+    lr: 0.001
+    n_train_steps: 5000
+
+# Additional sequences to load into replay buffer
+additional_replay_data:
+  path: "data/photo_sequences_50_42.pkl"
+  format: "custom"  # Custom format for our generated sequences

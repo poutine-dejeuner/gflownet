@@ -13,7 +13,7 @@ import pandas as pd
 from omegaconf import open_dict
 
 from gflownet.utils.common import gflownet_from_config
-
+from gflownet.utils.data import load_additional_replay_data
 
 @hydra.main(config_path="./config", config_name="train", version_base="1.1")
 def main(config):
@@ -33,6 +33,10 @@ def main(config):
 
     # Initialize a GFlowNet agent from the configuration file
     gflownet = gflownet_from_config(config)
+    
+    # Optionally load additional samples into replay buffer
+    if hasattr(config, 'additional_replay_data') and config.additional_replay_data:
+        load_additional_replay_data(gflownet, config.additional_replay_data)
 
     # Train GFlowNet
     gflownet.train()

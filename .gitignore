@@ -1,3 +1,5 @@
+images/
+data/
 *.out
 None/
 __pycache__/
